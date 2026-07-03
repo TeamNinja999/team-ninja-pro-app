@@ -1,5 +1,5 @@
 {
-  "name": "team-ninja-desktop",
+  "name": "ytdownloader-desktop",
   "version": "1.0.0",
   "description": "Professional YouTube Downloader",
   "main": "main.js",
@@ -11,8 +11,8 @@
     "build:win": "vite build && electron-builder --win"
   },
   "build": {
-    "appId": "com.teamninja.ytdownloader",
-    "productName": "Team Ninja Pro",
+    "appId": "com.ytdownloader.app",
+    "productName": "YTDownloader",
     "files": [
       "main.js",
       "preload.js",
