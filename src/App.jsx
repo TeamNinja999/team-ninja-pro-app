@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// --- Smart API Router ---
+// Automatically uses the proxy in dev, and absolute URL in the compiled .exe
+const API_BASE = window.electronAPI ? 'http://127.0.0.1:5000' : '';
+
 // --- Smart Sound Engine ---
 const playNotification = (type) => {
   try {
@@ -71,7 +75,7 @@ export default function App() {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
-        const res = await fetch('/api/progress');
+        const res = await fetch(`${API_BASE}/api/progress`);
         const data = await res.json();
         data.forEach(job => {
           if (job.status === 'completed' && !playedSounds.current.includes(job.job_id)) {
@@ -86,24 +90,28 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const res = await fetch('/api/config');
-        const data = await res.json();
-        setConfig(data);
-        
-        if (data.appIcon && data.appIcon !== appliedIcon.current && window.electronAPI?.setIcon) {
-          window.electronAPI.setIcon(data.appIcon);
-          appliedIcon.current = data.appIcon;
-        }
+  const fetchConfig = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/config`);
+      const data = await res.json();
+      setConfig(data);
+      
+      if (data.appIcon && data.appIcon !== appliedIcon.current && window.electronAPI?.setIcon) {
+        window.electronAPI.setIcon(data.appIcon);
+        appliedIcon.current = data.appIcon;
+      }
 
-        if (!configLoaded) {
-          setConfigLoaded(true);
-          setTimeout(() => setIsLoaded(true), 1500);
-        }
-      } catch (e) {}
-    };
+      if (!configLoaded) {
+        setConfigLoaded(true);
+        setTimeout(() => setIsLoaded(true), 1500);
+      }
+    } catch (e) {
+      // If Python isn't ready yet (common in compiled .exe), retry in 1 second
+      if (!configLoaded) setTimeout(fetchConfig, 1000);
+    }
+  };
+
+  useEffect(() => {
     fetchConfig();
     const interval = setInterval(fetchConfig, 1500);
     return () => clearInterval(interval);
@@ -115,7 +123,7 @@ export default function App() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch('/api/history');
+      const res = await fetch(`${API_BASE}/api/history`);
       const data = await res.json();
       setHistory(data);
     } catch (e) {}
@@ -125,7 +133,7 @@ export default function App() {
     if(!url) return;
     setLoading(true); setError(''); setInfo(null);
     try {
-      const res = await fetch('/api/info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+      const res = await fetch(`${API_BASE}/api/info`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
       const data = await res.json();
       if(!res.ok) throw new Error(data.error);
       setInfo(data); playNotification('found');
@@ -140,24 +148,24 @@ export default function App() {
     if(!info) return;
     const height = document.getElementById('qualitySelect')?.value;
     const payload = { url, mode, title: info.title, height, bitrate: mp3Bitrate };
-    const res = await fetch('/api/download', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const res = await fetch(`${API_BASE}/api/download`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) setPage('downloads');
   };
 
   const cancelDownload = async (jobId) => {
-    await fetch(`/api/cancel/${jobId}`, { method: 'POST' });
+    await fetch(`${API_BASE}/api/cancel/${jobId}`, { method: 'POST' });
   };
 
   const saveFile = async (job) => {
     try {
-      const res = await fetch(`/api/get_filepath/${job.job_id}`);
+      const res = await fetch(`${API_BASE}/api/get_filepath/${job.job_id}`);
       const data = await res.json();
       if(data.error) return alert(data.error);
       
       const savedPath = await window.electronAPI.saveAs(data.file_path, data.filename);
       
       if(savedPath) {
-        await fetch('/api/history/add', {
+        await fetch(`${API_BASE}/api/history/add`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -165,7 +173,7 @@ export default function App() {
             size: data.size, file_path: savedPath, type: data.mode === 'video' ? 'MP4' : 'MP3'
           })
         });
-        await fetch(`/api/clear_job/${job.job_id}`, { method: 'POST' });
+        await fetch(`${API_BASE}/api/clear_job/${job.job_id}`, { method: 'POST' });
         setDownloads(prev => prev.filter(j => j.job_id !== job.job_id));
       }
     } catch(e) { alert('Save failed: ' + e.message); }
