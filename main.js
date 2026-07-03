@@ -20,16 +20,8 @@ function createWindow(iconPath) {
     }
   });
   
-  // Remove the default menu bar (File, Edit, View, etc.) so users can't click "Toggle Developer Tools"
   Menu.setApplicationMenu(null);
 
-  // Completely block DevTools in the compiled production app
-  if (!app.isPackaged) {
-    mainWindow.webContents.on('devtools-opened', () => {
-      mainWindow.webContents.closeDevTools();
-    });
-  }
-  
   const isDev = !app.isPackaged;
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
@@ -74,16 +66,23 @@ ipcMain.on('app:setIcon', (event, iconPath) => {
 app.whenReady().then(() => {
   const isDev = !app.isPackaged;
   
+  // Determine the correct paths for production vs development
   const pyPath = isDev ? path.join(__dirname, 'backend', 'app.py') : path.join(process.resourcesPath, 'backend.exe');
-  pyProc = isDev ? spawn('python', [pyPath]) : spawn(pyPath);
+  const appRoot = isDev ? __dirname : path.join(process.resourcesPath, 'app.asar.unpacked');
+  
+  // Open a log file to capture Python errors in production
+  const logFile = fs.openSync(path.join(app.getPath('userData'), 'backend.log'), 'w');
+  
+  // Spawn Python, passing appRoot as an argument so it finds config.json
+  pyProc = isDev ? spawn('python', [pyPath, appRoot]) : spawn(pyPath, [appRoot], { stdio: ['ignore', logFile, logFile] });
   
   let initialIcon = undefined;
-  const configPath = path.join(__dirname, 'config.json');
+  const configPath = path.join(appRoot, 'config.json');
   if (fs.existsSync(configPath)) {
     try {
       const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
       if (configData.appIcon) {
-        const iconFullPath = path.join(__dirname, configData.appIcon);
+        const iconFullPath = path.join(appRoot, configData.appIcon);
         if (fs.existsSync(iconFullPath)) {
           initialIcon = iconFullPath;
         }

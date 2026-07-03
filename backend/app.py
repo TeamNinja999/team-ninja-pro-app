@@ -5,6 +5,7 @@ import os
 import re
 import uuid
 import json
+import sys
 import threading
 import time
 import logging
@@ -17,9 +18,13 @@ import imageio_ffmpeg
 app = Flask(__name__)
 CORS(app)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Save downloads to a local folder beside the app
-DOWNLOAD_DIR = os.path.join(BASE_DIR, '..', 'TeamNinjaDownloads')
+# Electron passes the app root directory as an argument when spawning backend.exe
+# This ensures Python looks in the correct folder for config.json
+APP_ROOT = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = APP_ROOT
+
+# Save downloads to AppData to avoid permission issues in Program Files
+DOWNLOAD_DIR = os.path.join(os.environ.get('APPDATA', BASE_DIR), 'YTDownloader')
 HISTORY_FILE = os.path.join(DOWNLOAD_DIR, 'history.json')
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
@@ -183,11 +188,8 @@ def get_file(job_id):
 # --- CONFIG CONTROLLER ENDPOINT ---
 @app.route('/api/config')
 def get_config():
-    # Check both the root folder and the backend folder for config.json
-    root_config = os.path.join(BASE_DIR, '..', 'config.json')
-    local_config = os.path.join(BASE_DIR, 'config.json')
-    
-    config_file = root_config if os.path.exists(root_config) else local_config
+    # Look for config.json in the APP_ROOT passed by Electron
+    config_file = os.path.join(BASE_DIR, 'config.json')
     
     default_cfg = {
         "appName": "YT Downloader", "appVersion": "Pro Edition v1.0", "titlebarText": "YT DOWNLOADER", "appIcon": "",
@@ -229,6 +231,38 @@ def get_config():
         print("[Config] WARNING: config.json not found! Using defaults.")
 
     return jsonify(default_cfg)
+
+# --- ICON UPLOAD ENDPOINT ---
+@app.route('/api/upload_icon', methods=['POST'])
+def upload_icon():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    # Save the uploaded icon to the APP_ROOT
+    save_path = os.path.join(BASE_DIR, 'custom_icon.png')
+    file.save(save_path)
+    
+    cfg = load_config()
+    cfg['appIcon'] = 'custom_icon.png'
+    save_config(cfg)
+    
+    return jsonify({"success": True, "icon": "custom_icon.png"})
+
+def load_config():
+    config_file = os.path.join(BASE_DIR, 'config.json')
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as f:
+            try: return json.load(f)
+            except: return {}
+    return {}
+
+def save_config(cfg):
+    config_file = os.path.join(BASE_DIR, 'config.json')
+    with open(config_file, 'w') as f:
+        json.dump(cfg, f, indent=4)
 
 if __name__ == '__main__':
     print("Server starting on http://127.0.0.1:5000")
