@@ -1,6 +1,6 @@
 {
   "name": "ytdownloader-desktop",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Professional YouTube Downloader",
   "main": "main.js",
   "scripts": {
