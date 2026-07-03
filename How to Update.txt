@@ -1,0 +1,45 @@
+Congratulations! You now have a professional app with a real deployment system.
+
+Since you are a beginner, I wrote this simple, step-by-step guide just for you. Keep this text saved somewhere so you can refer to it whenever you want to update your app!
+
+📖 How to Publish Updates to Your App (For Beginners)
+Think of version numbers like chapters in a book. Your current app is Chapter 1.0.0. If you want to add a new feature or change a color, you are writing Chapter 1.0.1.
+
+Here is exactly what you do when you want to update the app for your users:
+
+Step 1: Make Your Changes
+Open your terminal in your project folder (D:\Projects\YT Video Downloader\V1.2 PreAlpha).
+
+If you want to change colors, text, or icons, run python theme_controller.py, make your changes, and click "Apply to Desktop App".
+If you want to test how it looks, run npm run dev.
+Step 2: Run the Magic Deploy Script
+Once you are happy with the changes and want to send them to your users, run:
+
+bash
+
+python deploy.py
+Step 3: Answer the Script's Questions
+The script will ask you for your GitHub username and your token (the one that starts with ghp_).
+
+Username: Type your username (TeamNinja999).
+Token: Paste your token and press Enter.
+Version Number: The script will say "Current version is 1.0.0. Enter new version number...". This is the most important part! You must type a new, higher number. Type 1.0.1 and press Enter.
+Step 4: Wait for it to Build
+The script will now automatically:
+
+Save your new code.
+Compile your app into a new YTDownloader Setup 1.0.1.exe.
+Upload it to your secret GitHub repository.
+Step 5: The Magic Happens (For Your Users)
+You are done! You don't need to send your friends a new file.
+
+The next time your friends open their app, the app will secretly check your GitHub.
+It will see that version 1.0.1 is available.
+It will download the update in the background and install it.
+The next time they open the app, they will see your new changes!
+🔑 Important Tips to Remember:
+Never use the same version number twice. If you published 1.0.1, your next update MUST be 1.0.2, then 1.0.3, etc. The app will ignore an update if the version number isn't higher than the current one.
+Keep your token safe. The ghp_... token is like a password. Don't share it with anyone!
+Keep your project folder. Never delete your V1.2 PreAlpha folder. That folder contains your Customizer, your code, and the deploy script. You need it to make future updates!
+
+

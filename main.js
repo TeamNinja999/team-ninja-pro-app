@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow;
 let pyProc;
@@ -10,14 +11,21 @@ function createWindow(iconPath) {
   mainWindow = new BrowserWindow({
     width: 1200, height: 800, minWidth: 1000, minHeight: 700,
     frame: false, backgroundColor: '#1b2838',
-    icon: iconPath, // Apply the icon instantly on creation
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, nodeIntegration: false,
       autoplayPolicy: "no-user-gesture-required"
     }
   });
-  mainWindow.loadURL('http://localhost:5173');
+  
+  // Check if we are in development or production
+  const isDev = !app.isPackaged;
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:5173');
+  } else {
+    mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
+  }
 }
 
 ipcMain.on('window:minimize', () => mainWindow.minimize());
@@ -54,11 +62,12 @@ ipcMain.on('app:setIcon', (event, iconPath) => {
 });
 
 app.whenReady().then(() => {
-  // Start Python Backend silently
-  const pyPath = path.join(__dirname, 'backend', 'app.py');
-  pyProc = spawn('python', [pyPath], { stdio: 'ignore' });
+  const isDev = !app.isPackaged;
   
-  // Read config.json to get the custom icon BEFORE creating the window
+  // In Dev, run python script. In Prod, run the compiled backend.exe
+  const pyPath = isDev ? path.join(__dirname, 'backend', 'app.py') : path.join(process.resourcesPath, 'backend.exe');
+  pyProc = isDev ? spawn('python', [pyPath]) : spawn(pyPath);
+  
   let initialIcon = undefined;
   const configPath = path.join(__dirname, 'config.json');
   if (fs.existsSync(configPath)) {
@@ -73,8 +82,11 @@ app.whenReady().then(() => {
     } catch (e) { console.error("Error reading config for icon:", e); }
   }
   
-  // Create window with the correct icon from the start
   createWindow(initialIcon);
+
+  if (!isDev) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 });
 
 app.on('window-all-closed', () => {

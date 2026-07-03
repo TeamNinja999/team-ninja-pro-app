@@ -1,0 +1,80 @@
+{
+    "animations": {
+        "pageTransition": "fade_slide"
+    },
+    "appIcon": "custom_icon.png",
+    "appName": "YT Downloader",
+    "appVersion": "Team Ninja",
+    "colors": {
+        "accent": "#ffffff",
+        "bg": "#1a1a1d",
+        "card": "#222226",
+        "danger": "#dc3545",
+        "hover": "#a40000",
+        "sidebar": "#b82828",
+        "success": "#28a745",
+        "titlebar": "#000000"
+    },
+    "fonts": {
+        "family": "Segoe UI, sans-serif",
+        "fontWeight": "600",
+        "strokeColor": "#000000",
+        "strokeWidth": "0px"
+    },
+    "icons": {
+        "downloader": "bi-download",
+        "downloads": "bi-hourglass-split",
+        "library": "bi-folder",
+        "mp3": "bi-music-note-beamed",
+        "mp4": "bi-film",
+        "openLocation": "bi-folder2-open",
+        "save": "bi-folder2-open",
+        "settings": "bi-gear",
+        "updates": "bi-arrow-repeat"
+    },
+    "options": {
+        "borderRadius": "12px",
+        "cardOpacity": "0.4",
+        "cardShadow": "0 10px 20px rgba(0,0,0,0.4)",
+        "contentPadding": "32px",
+        "fontSize": "14px",
+        "loadingAnimation": "spinner",
+        "loadingBgColor": "#2c2b2b",
+        "loadingBgTexture": "diagonal_stripes",
+        "loadingSpinnerColor": "#ffffff",
+        "loadingSpinnerSize": "50px",
+        "loadingText": "Loading...",
+        "loadingTextColor": "#ffffff",
+        "loadingTextSize": "24px",
+        "loadingTextWeight": "700",
+        "outlineColor": "#000000",
+        "outlineWidth": "1px",
+        "progressBarHeight": "6px",
+        "showVersion": "true",
+        "sidebarWidth": "260px",
+        "textAlign": "left",
+        "titlebarOpacity": "0.2"
+    },
+    "texts": {
+        "cancelBtn": "Cancel",
+        "closeAppBtn": "Close App",
+        "closeAppDesc": "Force quit the application and stop all background processes.",
+        "downloadMp3Btn": "Download MP3",
+        "downloadMp4Btn": "Download MP4",
+        "downloaderTitle": "Video Downloader",
+        "downloadsTitle": "Active Downloads",
+        "fetchBtn": "Fetch",
+        "libraryTitle": "Download History",
+        "saveFileBtn": "SAVE FILE HERE",
+        "settingsTitle": "Settings",
+        "settingsVersionText": "PreAlpha v1.0.1 (Pre-Alpha)",
+        "updatesLog": "v1.0.1 - Initial Release\n- Added Download Manager\n-Still Testing",
+        "updatesTitle": "Updates",
+        "versionLabel": "Application Version"
+    },
+    "textures": {
+        "background": "soft_dots",
+        "sidebar": "tech_grid"
+    },
+    "titlebarText": "YT Downloader"
+}
