@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -9,7 +9,7 @@ let pyProc;
 
 function createWindow(iconPath) {
   mainWindow = new BrowserWindow({
-    title: 'YTDownloader', // EXPLICITLY SET THE WINDOW TITLE
+    title: 'YTDownloader',
     width: 1200, height: 800, minWidth: 1000, minHeight: 700,
     frame: false, backgroundColor: '#1b2838',
     icon: iconPath,
@@ -20,9 +20,16 @@ function createWindow(iconPath) {
     }
   });
   
-  mainWindow.setMenuBarVisibility(false); // Hide default menu bar
+  // Remove the default menu bar (File, Edit, View, etc.) so users can't click "Toggle Developer Tools"
+  Menu.setApplicationMenu(null);
+
+  // Completely block DevTools in the compiled production app
+  if (!app.isPackaged) {
+    mainWindow.webContents.on('devtools-opened', () => {
+      mainWindow.webContents.closeDevTools();
+    });
+  }
   
-  // Check if we are in development or production
   const isDev = !app.isPackaged;
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
@@ -67,7 +74,6 @@ ipcMain.on('app:setIcon', (event, iconPath) => {
 app.whenReady().then(() => {
   const isDev = !app.isPackaged;
   
-  // In Dev, run python script. In Prod, run the compiled backend.exe
   const pyPath = isDev ? path.join(__dirname, 'backend', 'app.py') : path.join(process.resourcesPath, 'backend.exe');
   pyProc = isDev ? spawn('python', [pyPath]) : spawn(pyPath);
   
