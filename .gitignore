@@ -1,0 +1,9 @@
+node_modules/
+backend/__pycache__/
+backend/venv/
+TeamNinjaDownloads/
+release/
+build/
+dist/
+custom_icon.png
+config.json
