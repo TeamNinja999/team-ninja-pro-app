@@ -1,6 +1,6 @@
 {
   "name": "ytdownloader-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Professional YouTube Downloader",
   "main": "main.js",
   "scripts": {
@@ -13,8 +13,19 @@
   "build": {
     "appId": "com.ytdownloader.app",
     "productName": "YTDownloader",
-    "files": ["main.js", "preload.js", "build/**/*", "config.json", "custom_icon.png"],
-    "extraResources": [{"from": "backend.exe", "to": "backend.exe"}],
+    "files": [
+      "main.js",
+      "preload.js",
+      "build/**/*",
+      "config.json",
+      "custom_icon.png"
+    ],
+    "extraResources": [
+      {
+        "from": "backend.exe",
+        "to": "backend.exe"
+      }
+    ],
     "asar": true,
     "win": {
       "target": "nsis",
@@ -23,6 +34,11 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "TeamNinja999",
+      "repo": "team-ninja-pro-app"
     }
   },
   "devDependencies": {
