@@ -7,7 +7,7 @@ app = Flask(__name__)
 CONFIG_FILE = 'config.json'
 
 DEFAULT_CONFIG = {
-    "appName": "YT Ninja", "appVersion": "Pro Edition v1.0", "titlebarText": "TEAM NINJA PRO", "appIcon": "",
+    "appName": "YT Ninja", "appVersion": "Pro Edition v1.0", "titlebarText": "YT Downloader", "appIcon": "",
     "texts": {
         "downloaderTitle": "Video Downloader", "fetchBtn": "Fetch", "downloadMp4Btn": "Download MP4",
         "downloadMp3Btn": "Download MP3", "downloadsTitle": "Active Downloads", "saveFileBtn": "SAVE FILE HERE",

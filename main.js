@@ -9,6 +9,7 @@ let pyProc;
 
 function createWindow(iconPath) {
   mainWindow = new BrowserWindow({
+    title: 'YTDownloader', // EXPLICITLY SET THE WINDOW TITLE
     width: 1200, height: 800, minWidth: 1000, minHeight: 700,
     frame: false, backgroundColor: '#1b2838',
     icon: iconPath,
@@ -18,6 +19,8 @@ function createWindow(iconPath) {
       autoplayPolicy: "no-user-gesture-required"
     }
   });
+  
+  mainWindow.setMenuBarVisibility(false); // Hide default menu bar
   
   // Check if we are in development or production
   const isDev = !app.isPackaged;

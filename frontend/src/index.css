@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  user-select: none;
+  cursor: default;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #1b2838; }
+::-webkit-scrollbar-thumb { background: #2a475e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #316282; }
+
+.drag-region { -webkit-app-region: drag; }
+.no-drag { -webkit-app-region: no-drag; }

@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // --- Smart API Router ---
-// Automatically uses the proxy in dev, and absolute URL in the compiled .exe
-const API_BASE = window.electronAPI ? 'http://127.0.0.1:5000' : '';
+// If running inside the compiled .exe, use absolute URL. Otherwise use proxy.
+const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
 
 // --- Smart Sound Engine ---
 const playNotification = (type) => {
@@ -70,12 +70,21 @@ export default function App() {
   const playedSounds = useRef([]);
   const appliedIcon = useRef(null);
   
-  const [config, setConfig] = useState({});
+  const [config, setConfig] = useState({
+    appName: "YT Downloader", appVersion: "Pro Edition v1.0", titlebarText: "YT DOWNLOADER", appIcon: "",
+    texts: { downloaderTitle: "Video Downloader", fetchBtn: "Fetch", downloadMp4Btn: "Download MP4", downloadMp3Btn: "Download MP3", downloadsTitle: "Active Downloads", saveFileBtn: "SAVE FILE HERE", cancelBtn: "Cancel", libraryTitle: "Download History", settingsTitle: "Settings", versionLabel: "Application Version", settingsVersionText: "YT Downloader v1.0.0 (Pre-Alpha)", closeAppBtn: "Close App", closeAppDesc: "Force quit the application and stop all background processes.", updatesTitle: "Updates", updatesLog: "v1.0.0 - Initial Release" },
+    icons: { downloader: "bi-download", downloads: "bi-hourglass-split", library: "bi-folder", settings: "bi-gear", updates: "bi-arrow-repeat", mp4: "bi-film", mp3: "bi-music-note-beamed", save: "bi-folder2-open", openLocation: "bi-folder2-open" },
+    fonts: { family: "Segoe UI, sans-serif", fontWeight: "600", strokeColor: "transparent", strokeWidth: "0px" },
+    colors: { sidebar: "#8b0000", bg: "#1a1a1d", card: "#222226", accent: "#cd9b1d", hover: "#a40000", success: "#28a745", danger: "#dc3545", titlebar: "#000000" },
+    textures: { background: "brushed_metal", sidebar: "none" },
+    animations: { pageTransition: "fade_slide" },
+    options: { borderRadius: "12px", cardShadow: "0 10px 20px rgba(0,0,0,0.4)", outlineColor: "transparent", outlineWidth: "0px", sidebarWidth: "260px", progressBarHeight: "12px", showVersion: "true", cardOpacity: "1.0", contentPadding: "32px", fontSize: "16px", textAlign: "left", titlebarOpacity: "1.0", loadingText: "Loading..", loadingBgColor: "#1a1a1d", loadingTextColor: "#cd9b1d", loadingSpinnerColor: "#cd9b1d", loadingAnimation: "spinner", loadingBgTexture: "none", loadingTextSize: "24px", loadingTextWeight: "700", loadingSpinnerSize: "50px" }
+  });
 
   useEffect(() => {
     const fetchProgress = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/progress`);
+        const res = await fetch(`${API_BASE}/api/progress?t=${Date.now()}`);
         const data = await res.json();
         data.forEach(job => {
           if (job.status === 'completed' && !playedSounds.current.includes(job.job_id)) {
@@ -92,8 +101,12 @@ export default function App() {
 
   const fetchConfig = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/config`);
+      const res = await fetch(`${API_BASE}/api/config?t=${Date.now()}`);
+      console.log("Fetching config from:", `${API_BASE}/api/config?t=${Date.now()}`);
+      console.log("Response status:", res.status);
       const data = await res.json();
+      console.log("Data received from Python:", data.appName);
+      
       setConfig(data);
       
       if (data.appIcon && data.appIcon !== appliedIcon.current && window.electronAPI?.setIcon) {
@@ -106,12 +119,10 @@ export default function App() {
         setTimeout(() => setIsLoaded(true), 1500);
       }
     } catch (e) {
-      // If Python isn't ready yet (common in compiled .exe), retry in 1 second
+      console.error("Fetch Config Failed:", e);
       if (!configLoaded) setTimeout(fetchConfig, 1000);
     }
-  };
-
-  useEffect(() => {
+  };  useEffect(() => {
     fetchConfig();
     const interval = setInterval(fetchConfig, 1500);
     return () => clearInterval(interval);
@@ -123,7 +134,7 @@ export default function App() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/history`);
+      const res = await fetch(`${API_BASE}/api/history?t=${Date.now()}`);
       const data = await res.json();
       setHistory(data);
     } catch (e) {}
@@ -193,8 +204,7 @@ export default function App() {
     skew_in: { initial: { opacity: 0, skewX: 20, skewY: 20 }, animate: { opacity: 1, skewX: 0, skewY: 0 }, exit: { opacity: 0, skewX: -20, skewY: -20 } }
   };
   
-  // Wait for config before rendering anything to prevent flash
-  if (!configLoaded || !config.options) {
+  if (!configLoaded) {
     return <div style={{ width: '100vw', height: '100vh', backgroundColor: '#1a1a1d' }}></div>;
   }
 
@@ -219,7 +229,6 @@ export default function App() {
     </button>
   );
 
-  // Loading Screen Render
   if (!isLoaded) {
     let animHTML = null;
     const spinSize = config.options.loadingSpinnerSize || '50px';
@@ -264,7 +273,6 @@ export default function App() {
     );
   }
 
-  // Main App Render (with Fade-In)
   return (
     <motion.div 
       initial={{ opacity: 0 }} 

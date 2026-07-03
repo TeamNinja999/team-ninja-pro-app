@@ -20,8 +20,13 @@ def main():
     print("🚀 YTDownloader - 1-Click Standalone Deployment")
     print("=" * 60)
     
+    # Check for icon.ico
+    if not os.path.exists('icon.ico'):
+        print("⚠️ WARNING: 'icon.ico' not found in the main folder!")
+        print("The .exe file will have the default Electron logo. Please convert a PNG to .ico and name it 'icon.ico'.")
+    
     # 1. Compile Python Backend
-    print("Step 1: Compiling Python Backend into standalone .exe...")
+    print("\nStep 1: Compiling Python Backend into standalone .exe...")
     subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"])
     
     if os.path.exists('backend.exe'): os.remove('backend.exe')
@@ -78,16 +83,20 @@ def main():
     if push_result.returncode != 0: return print("❌ Git push failed:", push_result.stderr)
     print("✅ Code successfully pushed to GitHub!")
 
-    # 4. Update Version
-    print("\nUpdating package.json version...")
+    # 4. Update Version and App Name
+    print("\nUpdating package.json version and App Name...")
     with open("package.json", "r") as f: pkg = json.load(f)
     
     current_version = pkg.get("version", "1.0.0")
     print(f"Current version is {current_version}.")
-    new_version = input("Enter new version number (e.g., 1.0.1): ").strip()
+    new_version = input("Enter new version number (e.g., 1.0.3): ").strip()
     if not new_version: new_version = current_version
     
     pkg["version"] = new_version
+    pkg["name"] = "ytdownloader-desktop"
+    pkg["productName"] = "YTDownloader"
+    pkg["build"]["appId"] = "com.ytdownloader.app"
+    pkg["build"]["productName"] = "YTDownloader"
     pkg["build"]["publish"] = {"provider": "github", "owner": username, "repo": repo_name}
     
     with open("package.json", "w") as f: json.dump(pkg, f, indent=2)
@@ -96,13 +105,17 @@ def main():
     run_cmd('git commit -m "Update version"')
     subprocess.run("git push", shell=True, text=True, capture_output=True)
 
-    # 5. Build Electron App
+    # 5. Clean dist folder to prevent caching old UI/Icons
+    print("\nCleaning old build cache...")
+    if os.path.exists('dist'): shutil.rmtree('dist')
+
+    # 6. Build Electron App
     print("\nStep 3: Building the YTDownloader Desktop App (this takes 3-5 minutes)...")
     subprocess.run("npm install", shell=True)
     build_process = subprocess.run("npm run build:win", shell=True)
     if build_process.returncode != 0: return print("❌ Build failed.")
 
-    # 6. Find Built Files
+    # 7. Find Built Files
     dist_dir = "dist"
     if not os.path.exists(dist_dir): return print("❌ dist folder not found.")
     
@@ -114,7 +127,7 @@ def main():
 
     if not exe_path or not yml_path: return print("❌ Could not find .exe or .yml in dist folder.")
 
-    # 7. Create GitHub Release
+    # 8. Create GitHub Release
     tag_name = f"v{new_version}"
     print(f"\nCreating GitHub Release {tag_name}...")
     release_data = {"tag_name": tag_name, "name": f"Release {new_version}", "body": "Latest update for YTDownloader.", "draft": False, "prerelease": False}
@@ -126,7 +139,7 @@ def main():
         print("✅ Release created!")
     else: return print("❌ Failed to create release:", res.json())
 
-    # 8. Upload Assets
+    # 9. Upload Assets
     print(f"\nUploading {os.path.basename(exe_path)}...")
     with open(exe_path, "rb") as f:
         res = requests.post(f"{upload_url}?name={os.path.basename(exe_path)}", headers={**headers, "Content-Type": "application/octet-stream"}, data=f)

@@ -1,5 +1,5 @@
 """
-Team Ninja Pro - Backend API
+YT Downloader - Backend API
 """
 import os
 import re
@@ -18,6 +18,7 @@ app = Flask(__name__)
 CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Save downloads to a local folder beside the app
 DOWNLOAD_DIR = os.path.join(BASE_DIR, '..', 'TeamNinjaDownloads')
 HISTORY_FILE = os.path.join(DOWNLOAD_DIR, 'history.json')
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
@@ -182,14 +183,19 @@ def get_file(job_id):
 # --- CONFIG CONTROLLER ENDPOINT ---
 @app.route('/api/config')
 def get_config():
-    config_file = os.path.join(BASE_DIR, '..', 'config.json')
+    # Check both the root folder and the backend folder for config.json
+    root_config = os.path.join(BASE_DIR, '..', 'config.json')
+    local_config = os.path.join(BASE_DIR, 'config.json')
+    
+    config_file = root_config if os.path.exists(root_config) else local_config
+    
     default_cfg = {
-        "appName": "YT Ninja", "appVersion": "Pro Edition v1.0", "titlebarText": "TEAM NINJA PRO", "appIcon": "",
+        "appName": "YT Downloader", "appVersion": "Pro Edition v1.0", "titlebarText": "YT DOWNLOADER", "appIcon": "",
         "texts": {
             "downloaderTitle": "Video Downloader", "fetchBtn": "Fetch", "downloadMp4Btn": "Download MP4",
             "downloadMp3Btn": "Download MP3", "downloadsTitle": "Active Downloads", "saveFileBtn": "SAVE FILE HERE",
             "cancelBtn": "Cancel", "libraryTitle": "Download History", "settingsTitle": "Settings",
-            "versionLabel": "Application Version", "settingsVersionText": "YT Ninja v1.0.0 (Pre-Alpha)",
+            "versionLabel": "Application Version", "settingsVersionText": "YT Downloader v1.0.0 (Pre-Alpha)",
             "closeAppBtn": "Close App", "closeAppDesc": "Force quit the application and stop all background processes.",
             "updatesTitle": "Updates", "updatesLog": "v1.0.0 - Initial Release\n- Added Customizer\n- Added Download Manager"
         },
@@ -202,26 +208,26 @@ def get_config():
         "colors": {"sidebar": "#8b0000", "bg": "#1a1a1d", "card": "#222226", "accent": "#cd9b1d", "hover": "#a40000", "success": "#28a745", "danger": "#dc3545", "titlebar": "#000000"},
         "textures": {"background": "brushed_metal", "sidebar": "none"},
         "animations": {"pageTransition": "fade_slide"},
-        "options": {
-            "borderRadius": "12px", "cardShadow": "0 10px 20px rgba(0,0,0,0.4)", "outlineColor": "transparent", "outlineWidth": "0px", 
-            "sidebarWidth": "260px", "progressBarHeight": "12px", "showVersion": "true", "cardOpacity": "1.0", 
-            "contentPadding": "32px", "fontSize": "16px", "textAlign": "left", "titlebarOpacity": "1.0",
-            "loadingText": "Loading..", "loadingBgColor": "#1a1a1d", "loadingTextColor": "#cd9b1d", 
-            "loadingSpinnerColor": "#cd9b1d", "loadingAnimation": "spinner", "loadingBgTexture": "none",
-            "loadingTextSize": "24px", "loadingTextWeight": "700", "loadingSpinnerSize": "50px"
-        }
+        "options": {"borderRadius": "12px", "cardShadow": "0 10px 20px rgba(0,0,0,0.4)", "outlineColor": "transparent", "outlineWidth": "0px", "sidebarWidth": "260px", "progressBarHeight": "12px", "showVersion": "true", "cardOpacity": "1.0", "contentPadding": "32px", "fontSize": "16px", "textAlign": "left", "titlebarOpacity": "1.0", "loadingText": "Loading..", "loadingBgColor": "#1a1a1d", "loadingTextColor": "#cd9b1d", "loadingSpinnerColor": "#cd9b1d", "loadingAnimation": "spinner", "loadingBgTexture": "none", "loadingTextSize": "24px", "loadingTextWeight": "700", "loadingSpinnerSize": "50px"}
     }
+    
     if os.path.exists(config_file):
+        print(f"[Config] Found config.json at: {config_file}")
         with open(config_file, 'r') as f:
             try:
                 cfg = json.load(f)
+                print(f"[Config] Successfully read appName: {cfg.get('appName')}")
                 for key in default_cfg:
                     if key not in cfg: cfg[key] = default_cfg[key]
                     elif isinstance(default_cfg[key], dict):
                         for subkey in default_cfg[key]:
                             if subkey not in cfg[key]: cfg[key][subkey] = default_cfg[key][subkey]
                 return jsonify(cfg)
-            except: pass
+            except Exception as e:
+                print(f"[Config] ERROR reading JSON: {e}")
+    else:
+        print("[Config] WARNING: config.json not found! Using defaults.")
+
     return jsonify(default_cfg)
 
 if __name__ == '__main__':
